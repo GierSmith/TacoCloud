@@ -1,8 +1,10 @@
 package com.yunnanhot.tacos.web;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+@Configuration
 public class WebConfig implements WebMvcConfigurer {
 /**
  * 实现了WebMvcConfigurer 接口，这个接口定义了多个方法来配置Spring MVC.

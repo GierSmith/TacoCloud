@@ -2,16 +2,19 @@ package com.yunnanhot.tacos.web;
 
 import com.yunnanhot.tacos.Ingredient;
 import com.yunnanhot.tacos.Ingredient.Type;
+import com.yunnanhot.tacos.Order;
 import com.yunnanhot.tacos.Taco;
+import com.yunnanhot.tacos.data.IngredientRepository;
+import com.yunnanhot.tacos.data.TacoRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +23,38 @@ import java.util.stream.Collectors;
 //@Slf4j是lombok提供的注解，在运行时会自动生成一个SLF4J (Simple Logging Facade for Java)的Logger类型的变量
 @Controller
 @RequestMapping("/design")
+@SessionAttributes("order")
+/**
+ * 类级的@SessionAttributes注解指定了一个模型对象，如order属性，
+ * 这个对象应该保存在会话中，并在多个请求中可用。
+ * */
 public class DesignTacoController {
+
+    private final IngredientRepository ingredientRepo;
+
+    private TacoRepository designRepo;
+
+    @Autowired
+    public DesignTacoController( IngredientRepository ingredientRepo, TacoRepository designRepo) {
+        this.ingredientRepo = ingredientRepo;
+        this.designRepo = designRepo;
+    }
+
+/***  @ModelAttribute annotation on order() ensures that an Order object will be created in the model
+*你需要订单在多个请求中存在，这样你就可以创建多个taco并将它们添加到订单中。
+ */
+    @ModelAttribute(name = "order")
+    public Order order() {
+        return new Order();
+    }
+
+    @ModelAttribute(name = "taco")
+    public Taco taco() {
+        return new Taco();
+    }
+
+
+
 /*
     @Slf4j修饰类的作用等效于在类中声明私有变量
     private static final org.slf4j.Logger log =
@@ -34,19 +68,8 @@ public class DesignTacoController {
           into the servlet response attributes, where the view can find them.
   * */
 
-
-        List<Ingredient> ingredients = Arrays.asList(
-                new Ingredient("FLTO", "Flour Tortilla", Type.WRAP),
-                new Ingredient("COTO", "Corn Tortilla", Type.WRAP),
-                new Ingredient("GRBF", "Ground Beef", Type.PROTEIN),
-                new Ingredient("CARN", "Carnitas", Type.PROTEIN),
-                new Ingredient("TMTO", "Diced Tomatoes", Type.VEGGIES),
-                new Ingredient("LETC", "Lettuce", Type.VEGGIES),
-                new Ingredient("CHED", "Cheddar", Type.CHEESE),
-                new Ingredient("JACK", "Monterrey Jack", Type.CHEESE),
-                new Ingredient("SLSA", "Salsa", Type.SAUCE),
-                new Ingredient("SRCR", "Sour Cream", Type.SAUCE)
-        );
+        List<Ingredient> ingredients = new ArrayList<>();
+        ingredientRepo.findAll().forEach(i -> ingredients.add(i));
 
         Type[] types = Ingredient.Type.values();
         for (Type type : types) {
@@ -72,15 +95,26 @@ public class DesignTacoController {
 * * */
     }
 
+
+    /**
+     * @param design  表单中的数据，经过校验后的对象
+     * @param errors  可以使用该对象来判断，表单中的数据是否满足Bean验证要求
+     * @param order   The Order parameter is annotated with @ModelAttribute to indicate (表明) that its
+     * value should come from the model and that Spring MVC shouldn’t attempt to bind
+     * request parameters to it.
+     * @return
+     */
     @PostMapping
-    public String processDesign(@Valid Taco design , Errors errors) {
+    public String processDesign(@Valid Taco design , Errors errors,@ModelAttribute Order order) {
 //     在参数上使用校验注解，当校验失败后，返回设计页面
         if (errors.hasErrors()) {
             log.info("bean 验证出现问题");
             return "design";
         }
-// Save the taco design...
-// We'll do this in chapter 3
+
+        Taco saved = designRepo.save(design);
+        order.addDesign(saved);
+
         log.info("Processing design: " + design);
         return "redirect:/orders/current";
 //        重定向到url--/orders/current，也就是让浏览器重新发起一个请求，请求的url为/orders/current

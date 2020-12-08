@@ -1,7 +1,8 @@
 // tag::all[]
 // tag::allButValidation[]
 package com.yunnanhot.tacos;
-import java.sql.Date;
+
+import java.util.Date;
 import java.util.List;
 // end::allButValidation[]
 import javax.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ public class Taco {
   private String name;
 
   @Size(min=1, message="You must choose at least 1 ingredient")
-  private List<String> ingredients;
+  private List<Ingredient> ingredients;
 
   private Long id;
   private Date createdAt;
