@@ -1,5 +1,6 @@
 package com.yunnanhot.tacos;
 
+import com.yunnanhot.tacos.web.WebConfig;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 //主页控制器测试
 
-@WebMvcTest(HomeController.class)
+@WebMvcTest(WebConfig.class)
 public class HomeControllerTest {
 
     @Autowired
